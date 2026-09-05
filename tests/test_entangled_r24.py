@@ -147,6 +147,10 @@ class TestLightConeRule3D(unittest.TestCase):
             self.assertEqual(np.sign(kD), np.sign(kDp))
             self.assertEqual(kA < kD, kAp < kDp)          # the order
 
+    def test_interval_clock_invariant_3d(self):
+        # round-4 P4 (Appendix C): the signed interval from the defining event
+        self.assertEqual(r24.interval_clock_invariance_scan(), 0)
+
     def test_disagreement_fraction_perpendicular(self):
         # (R-1)/2R depends only on the gammas, so it holds for perpendicular
         # velocities with the working pair's speeds (0.3, 0.8)
@@ -168,8 +172,11 @@ class TestPhotons(unittest.TestCase):
         for t in (1.0, 1.3):
             self.assertEqual(np.sqrt(1 - 1.0**2) * t, 0.0)
 
-    def test_affine_order_flips(self):
+    def test_coordinate_time_order_flips_but_invariant_clock_does_not(self):
+        # coordinate-time normalisation: frame-dependent (77 of 181, for the record)
         self.assertEqual(r24.photon_affine_order_flips(), 77)
+        # lambda = t/omega, the m -> 0 limit of kappa/m = t/E: invariant, 0 of 181
+        self.assertEqual(r24.photon_invariant_clock_flips(), 0)
 
     def test_massive_pair_never_flips(self):
         self.assertEqual(r24.massive_proper_order_flips(), 0)

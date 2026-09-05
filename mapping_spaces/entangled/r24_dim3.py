@@ -167,10 +167,48 @@ def transform_worldline(L, worldline):
     return (x0p, t0p, (x1p - x0p) / (t1p - t0p))
 
 
+def interval_clock(event, defining):
+    """Round-4 P4: signed invariant interval from the defining event (t_E, x_E)
+    to the measurement event (t, x), positive inside the future cone."""
+    t, x = event
+    tE, xE = defining
+    dt = t - tE
+    dx = np.asarray(x, float) - np.asarray(xE, float)
+    s2 = dt * dt - dx @ dx
+    return float(np.sign(dt) * np.sqrt(s2)) if s2 >= 0 else float(-np.sqrt(-s2))
+
+
+def interval_clock_invariance_scan(n=300, seed=7, tol=1e-9):
+    """Appendix C, 'The interval clock': over random configurations and random
+    non-collinear boosts up to 0.85c, both clocks, their signs and their order
+    are invariant.  Returns the number of failures (expected 0)."""
+    rng = np.random.default_rng(seed)
+    fails = 0
+    for _ in range(n):
+        E = (rng.uniform(0, 2), rng.normal(size=3))
+        evs = [(E[0] + rng.uniform(-3, 6), E[1] + rng.normal(scale=2.0, size=3)) for _ in range(2)]
+        k = [interval_clock(e, E) for e in evs]
+        bdir = rng.normal(size=3)
+        bdir /= np.linalg.norm(bdir)
+        L = boost(rng.uniform(0.1, 0.85) * bdir)
+        Eb = lorentz_event(L, E[0], E[1])
+        kb = [interval_clock(lorentz_event(L, e[0], e[1]), Eb) for e in evs]
+        if any(abs(a - b) > tol for a, b in zip(k, kb)) or (k[0] < k[1]) != (kb[0] < kb[1]) \
+                or any(np.sign(a) != np.sign(b) for a, b in zip(k, kb)):
+            fails += 1
+    return fails
+
+
 # ----------------------------------------------------------------- photons
 def photon_affine_order_flips(tA=1.0, tB=1.3, betas=np.linspace(-0.9, 0.9, 181)):
-    """Count boosts under which the coordinate/affine-time order of two
-    back-to-back photons (along -x and +x from the origin) flips."""
+    """Count boosts under which the COORDINATE-TIME order of two back-to-back
+    photons (along -x and +x from the origin) flips.  This is the affine
+    parameter normalised by laboratory time, which is frame-dependent by
+    construction (each photon's coordinate time rescales by the Doppler
+    factor sqrt((1 -+ beta)/(1 +- beta))); round 4 showed that this is a
+    normalisation artefact, not an obstruction -- see
+    ``photon_invariant_clock_flips``.  Kept for the record; not quoted in
+    the paper."""
     flips = 0
     for beta in betas:
         L = boost(np.array([beta, 0.0, 0.0]))
@@ -178,6 +216,27 @@ def photon_affine_order_flips(tA=1.0, tB=1.3, betas=np.linspace(-0.9, 0.9, 181))
         tBp, _ = lorentz_event(L, tB, np.array([tB, 0.0, 0.0]))
         if (tAp < tBp) != (tA < tB):
             flips += 1
+    return flips
+
+
+def photon_invariant_clock_flips(tA=1.0, tB=1.3, betas=np.linspace(-0.9, 0.9, 181)):
+    """Round-4 item A2.  The affine parameter the photon's own objects supply,
+    x^mu = lambda k^mu, is lambda = t/omega -- a Lorentz scalar (t and omega
+    rescale by the same Doppler factor), and the m -> 0 limit of the massive
+    clock kappa/m = t/E.  Its order never flips: photons CAN be ordered by an
+    invariant clock; what fails for them is co-location (no rest frame)."""
+    flips = 0
+    for beta in betas:
+        L = boost(np.array([beta, 0.0, 0.0]))
+        # photon A along -x (k = (1, -1, 0, 0) with omega = 1), B along +x
+        tAp, _ = lorentz_event(L, tA, np.array([-tA, 0.0, 0.0]))
+        tBp, _ = lorentz_event(L, tB, np.array([tB, 0.0, 0.0]))
+        kA = L @ np.array([1.0, -1.0, 0.0, 0.0])
+        kB = L @ np.array([1.0, 1.0, 0.0, 0.0])
+        lamA, lamB = tAp / kA[0], tBp / kB[0]
+        if (lamA < lamB) != (tA < tB):
+            flips += 1
+        assert abs(lamA - tA) < 1e-9 and abs(lamB - tB) < 1e-9
     return flips
 
 

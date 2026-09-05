@@ -120,13 +120,13 @@ def fig_cps():
 
 # 5b. The locality graph at the three kinds of event (schematic, three panels)
 def fig_locality_graph():
-    fig, axes = plt.subplots(1, 3, figsize=(7.6, 2.6))
+    fig, axes = plt.subplots(1, 3, figsize=(8.4, 3.1))
 
     def node(ax, x, y, label, lab_node=False):
         ax.scatter([x], [y], s=170 if lab_node else 120,
                    c="lightgray" if lab_node else "C0",
                    edgecolors="k", zorder=3)
-        ax.annotate(label, (x, y), ha="center", va="center", fontsize=7, zorder=4)
+        ax.annotate(label, (x, y), ha="center", va="center", fontsize=9, zorder=4)
 
     def edge(ax, p, q, w=1.0, style="-"):
         ax.plot([p[0], q[0]], [p[1], q[1]], style, color="C3",
@@ -134,16 +134,16 @@ def fig_locality_graph():
 
     # panel 1: creation — a co-located entangling event makes an edge
     ax = axes[0]
-    ax.set_title("entangling event\n(edge created, $w=1$)", fontsize=8)
+    ax.set_title("entangling event\n(edge created, $w=1$)", fontsize=10)
     node(ax, 0.5, 0.85, "lab", lab_node=True)
     node(ax, 0.3, 0.35, "A")
     node(ax, 0.7, 0.35, "B")
     edge(ax, (0.3, 0.35), (0.7, 0.35))
-    ax.text(0.5, 0.55, "created together\nat one lab event", fontsize=6, ha="center")
+    ax.text(0.5, 0.55, "created together\nat one lab event", fontsize=8, ha="center")
 
     # panel 2: measurement — the component splits, edges vanish
     ax = axes[1]
-    ax.set_title("first measurement on A\n(edges follow the components)", fontsize=8)
+    ax.set_title("first measurement on A\n(edges follow the components)", fontsize=10)
     node(ax, 0.5, 0.85, "lab", lab_node=True)
     node(ax, 0.18, 0.35, "A")
     node(ax, 0.46, 0.35, "B")
@@ -151,12 +151,12 @@ def fig_locality_graph():
     node(ax, 0.72, 0.35, "C")
     node(ax, 0.94, 0.35, "D")
     edge(ax, (0.72, 0.35), (0.94, 0.35), w=0.7)
-    ax.text(0.20, 0.18, "projected pair:\n$w \\to 0$", fontsize=6)
-    ax.text(0.70, 0.18, "partial ent.:\n$w = 2\\mathcal{N}$", fontsize=6)
+    ax.text(0.20, 0.18, "projected pair:\n$w \\to 0$", fontsize=8)
+    ax.text(0.70, 0.18, "partial ent.:\n$w = 2\\mathcal{N}$", fontsize=8)
 
     # panel 3: Bell-state measurement — the transfer postulate
     ax = axes[2]
-    ax.set_title("Bell-state measurement on B, C\n(transfer: edge $A$–$D$)", fontsize=8)
+    ax.set_title("Bell-state measurement on B, C\n(transfer: edge $A$–$D$)", fontsize=10)
     node(ax, 0.5, 0.85, "lab", lab_node=True)
     node(ax, 0.12, 0.42, "A")
     node(ax, 0.38, 0.42, "B")
@@ -164,13 +164,13 @@ def fig_locality_graph():
     node(ax, 0.88, 0.42, "D")
     edge(ax, (0.12, 0.42), (0.38, 0.42), w=0.0, style=":")
     edge(ax, (0.62, 0.42), (0.88, 0.42), w=0.0, style=":")
-    ax.annotate("BSM", (0.5, 0.50), ha="center", fontsize=6)
+    ax.annotate("BSM", (0.5, 0.50), ha="center", fontsize=8)
     ax.plot([0.5], [0.42], marker="x", ms=9, color="k", zorder=4)
     ax.add_patch(matplotlib.patches.FancyArrowPatch(
         (0.12, 0.47), (0.88, 0.47), connectionstyle="arc3,rad=0.35",
         arrowstyle="-", color="C3", lw=2.6, zorder=2))
     ax.text(0.5, 0.10, "old edges removed (dotted); $A$–$D$ created\n(covariantly: on the future cone of the BSM)",
-            fontsize=6, ha="center")
+            fontsize=8, ha="center")
 
     for ax in axes:
         ax.set_xlim(0, 1)

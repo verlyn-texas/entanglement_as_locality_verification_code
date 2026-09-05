@@ -298,6 +298,27 @@ def reduced_spin_change(n_pos: int = 4, coupling: str = "position", seed: int = 
             "S_after_step": float(qm.chsh(rho_spin_new, a, ap, b, bp))}
 
 
+def spin_dephasing_rate_ratio(n_pos: int = 81, width: float = 1.0) -> float:
+    """Round-4 item G1.  With the Eq. (12) convention (measurement term
+    -Gamma_m [A, [A, rho]]) and a sensor reading the spin-dependent position
+    A = sigma_z (x) x, the reduced-spin coherence of a packet with second
+    moment <x^2> decays initially at 4 Gamma_m <x^2> (the two spin branches
+    see +-x, a separation 2x).  Returns -(d rho_01/dt) / (Gamma_m <x^2> rho_01)
+    on a discretised Gaussian packet: 4."""
+    xs = np.linspace(-6 * width, 6 * width, n_pos)
+    psi = np.exp(-xs**2 / (4 * width**2)).astype(complex)
+    psi /= np.linalg.norm(psi)
+    rho_pos = np.outer(psi, psi.conj())
+    x2 = float(np.real(np.sum(xs**2 * np.abs(psi) ** 2)))
+    plus = np.array([1.0, 1.0], dtype=complex) / np.sqrt(2)
+    rho_spin = np.outer(plus, plus.conj())
+    rho = np.kron(rho_spin, rho_pos)
+    A = np.kron(np.diag([1.0, -1.0]).astype(complex), np.diag(xs).astype(complex))
+    drho = -(A @ (A @ rho - rho @ A) - (A @ rho - rho @ A) @ A)      # -[A,[A,rho]], Gamma_m = 1
+    d_spin = np.trace(drho.reshape(2, n_pos, 2, n_pos), axis1=1, axis2=3)
+    return float(-np.real(d_spin[0, 1]) / (x2 * np.real(rho_spin[0, 1])))
+
+
 # ------------------------------------------------------------------- table
 def realistic_table(ks=KS_TABLE, T: float = 1e-7, m: float = M_E, v0: float = V0) -> list[dict]:
     """(k, sqrt V_x^ss, gamma, heating, relative error of the fitted 2/a)."""

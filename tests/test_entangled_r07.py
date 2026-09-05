@@ -96,6 +96,8 @@ class R07(unittest.TestCase):
         self.assertGreater(grad["norm_change"], 1.0)
         self.assertLess(abs(grad["S_after_step"]), qm.TSIRELSON - 0.1)
         self.assertGreater(abs(grad["S_after_step"]), 2.0)
+        self.assertAlmostEqual(abs(grad["S_after_step"]), 2.53, delta=0.01)  # the quoted step
+        self.assertAlmostEqual(r.spin_dephasing_rate_ratio(), 4.0, places=6)  # G1: 4 Gamma <x^2>
 
     # claim 7 — realistic numbers
     def test_claim7_table(self):

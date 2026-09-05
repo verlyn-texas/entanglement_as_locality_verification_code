@@ -35,7 +35,11 @@ import numpy as np
 
 from mapping_spaces.entangled import frames, qm
 
-# qD heights of (A, B) after the first projection, per variant
+# qD heights of (A, B) after the first projection, per variant.  Round-4
+# note: the paper's canonical statement adopts M1c-inert (labels persist,
+# edge weight 0) -- a label at z = 0 would contradict P1's single-valued
+# lab potential for a moving particle; M1a/M1b are kept here only as the
+# pass-1 alternatives whose spin statistics coincide (claim 7).
 VARIANT_Z = {"M1a": (0.0, 0.0), "M1b": (0.0, 1.0), "M1c": (-1.0, 1.0)}
 
 
