@@ -3,10 +3,6 @@
 This directory defines the public code release referenced by the paper's
 "Code and data availability" statement ("Entanglement as locality in the
 particles' own frames: a label-coordinate interpretation and its costs").
-The code itself lives in the repository (single source of truth); this
-manifest lists exactly what to publish and how a reader runs it. To assemble
-a standalone release, copy the listed files preserving paths, plus this
-README as the release README.
 
 ## Contents
 
@@ -52,10 +48,3 @@ uses `fig_frames`, `fig_contact_polytope`, `fig_locality_graph`,
 drop the figure functions not in that list together with the
 `r19_force_noise_proposal` import they depend on — that module is not part
 of this release.
-
-## Status
-
-The release is assembled but not yet public (GitHub issue #2 tracks
-publication). Once a repository URL exists, replace "available from the
-author on request; a public repository is in preparation" in the paper's
-availability statement with the URL.
