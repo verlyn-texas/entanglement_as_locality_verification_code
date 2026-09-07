@@ -101,6 +101,18 @@ class TestCovariantGroupValued(unittest.TestCase):
                   for h in self.heights]
         self.assertGreater(max(angles), 1.0)
         self.assertLess(max(angles), 90.0)
+        # Sec. 3.7.4 / Appendix C: "up to ~27 deg" in this scan (round-5 H16)
+        self.assertAlmostEqual(r24.wigner_scan_max(self.vel, self.w), max(angles), places=9)
+        self.assertAlmostEqual(max(angles), 26.6, delta=0.1)          # "~27 deg" (all pairs)
+        cross = [r24.rotation_angle_deg(self.tmap(k, l, h))
+                 for k in (0, 1) for l in (2, 3) for h in self.heights]
+        self.assertAlmostEqual(max(cross), 18.0, delta=0.1)           # different components
+
+    def test_wigner_angle_two_perpendicular_boosts(self):
+        # Appendix C: two perpendicular 0.85c boosts rotate by 34 deg (34.44)
+        self.assertAlmostEqual(r24.wigner_angle_two_boosts(0.85), 34.44, delta=0.01)
+        self.assertAlmostEqual(r24.wigner_angle_two_boosts(0.85),
+                               r24.wigner_angle_two_boosts_closed_form(0.85), places=6)
 
     def test_collinear_limit_scalar(self):
         rng = np.random.default_rng(7)

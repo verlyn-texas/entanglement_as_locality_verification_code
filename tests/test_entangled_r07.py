@@ -96,7 +96,15 @@ class R07(unittest.TestCase):
         self.assertGreater(grad["norm_change"], 1.0)
         self.assertLess(abs(grad["S_after_step"]), qm.TSIRELSON - 0.1)
         self.assertGreater(abs(grad["S_after_step"]), 2.0)
-        self.assertAlmostEqual(abs(grad["S_after_step"]), 2.53, delta=0.01)  # the quoted step
+        self.assertAlmostEqual(abs(grad["S_after_step"]), 2.53, delta=0.01)  # the seeded instance
+        self.assertAlmostEqual(grad["x2"], 1.066, delta=0.001)
+        self.assertAlmostEqual(abs(grad["S_after_step"]), grad["S_closed_form"], places=9)
+        # round-5 H3: the closed form sqrt2 (2 - 0.2 <x^2>) and the uniform-grid instance
+        uni = r.reduced_spin_change(coupling="gradient", position_state="uniform")
+        self.assertAlmostEqual(uni["x2"], 1.25, places=12)
+        self.assertAlmostEqual(abs(uni["S_after_step"]), 2.475, places=3)
+        self.assertAlmostEqual(abs(uni["S_after_step"]), np.sqrt(2) * (2 - 0.2 * 1.25), places=9)
+        self.assertAlmostEqual(r.spin_step_closed_form(1.25), 2.475, places=3)
         self.assertAlmostEqual(r.spin_dephasing_rate_ratio(), 4.0, places=6)  # G1: 4 Gamma <x^2>
 
     # claim 7 — realistic numbers

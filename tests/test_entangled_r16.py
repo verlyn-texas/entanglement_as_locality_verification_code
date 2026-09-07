@@ -169,3 +169,15 @@ class R16(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestChartJump(unittest.TestCase):
+    """Round-5 H4: the covariant chart jump at re-anchoring, made explicit."""
+
+    def test_positions_in_A_chart_at_the_cone_crossing(self):
+        out = r.chart_jump_at_reanchoring()
+        self.assertAlmostEqual(out["t_crossing"], 3.5, places=9)
+        self.assertAlmostEqual(out["B"]["before"], 0.0, places=9)
+        self.assertAlmostEqual(out["B"]["after"], 2.1433, places=3)
+        self.assertAlmostEqual(out["D"]["before"], 4.1335, places=3)
+        self.assertAlmostEqual(out["D"]["after"], 1.6 / np.sqrt(1 - 0.25), places=9)   # 1.8475

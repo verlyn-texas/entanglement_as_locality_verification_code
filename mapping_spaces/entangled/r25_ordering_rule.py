@@ -409,3 +409,132 @@ if __name__ == "__main__":
     for d in (1.0, 10.0, 100.0):
         print("delayed choice", d, "m:", delayed_choice_clocks(d))
     print("NR window:", nonrelativistic_window(1e4, 2e4))
+
+
+# ------------------------------------------------- round-5 items T2 and T3
+def pruned_pair_anchors(velocities=(0.0, -0.633, 0.200), events=((1.0, 0.0), (3.0, -1.9), (2.2, 0.44))) -> dict:
+    """Round-5 item T2 (referee C-N1).  A GHZ triple created at O = (0, 0) on
+    inertial worldlines with the given velocities is measured at three events;
+    the first (smallest kappa from O) prunes the triple to a pair.  Under the
+    INHERITED anchor (the pair keeps O as its defining event, the rule the
+    paper adopts) the remnant pair is ordered by kappa from O; under the
+    pruning anchor (the first measurement as the defining event, the reading
+    the paper withdraws) the remnant pair can be unordered or ordered the
+    other way.  The referee's triple: O orders 3 before 2, e1 orders 2
+    before 3."""
+    O = (0.0, 0.0)
+    kap_O = [signed_interval(O, e) for e in events]
+    i_first = int(np.argmin(kap_O))
+    rest = [i for i in range(3) if i != i_first]
+    R_O = order_relation([events[i] for i in rest], O)
+    e_prune = events[i_first]
+    kap_p = [signed_interval(e_prune, events[i]) for i in rest]
+    R_p = order_relation([events[i] for i in rest], e_prune)
+
+    def first_of(R):
+        if R[0, 1]:
+            return rest[0]
+        if R[1, 0]:
+            return rest[1]
+        return None
+    return {"first": i_first, "remnant": rest, "kappa_O": kap_O,
+            "kappa_pruning": kap_p,
+            "inherited_first": first_of(R_O), "pruning_first": first_of(R_p),
+            "remnant_mutually_spacelike": causal(events[rest[0]], events[rest[1]]) == 0,
+            "on_worldlines": all(abs(e[1] - v * e[0]) < 1e-2 for v, e in zip(velocities, events))}
+
+
+def random_spacelike_triples_pruning_anchor(n: int = 3000, seed: int = 5) -> dict:
+    """Random GHZ triples from O measured at three mutually spacelike events:
+    under the inherited anchor the remnant pair is always ordered (a total
+    order by proper time from O); under the pruning anchor it is unordered
+    whenever both remnant events lie outside the first measurement's cone."""
+    rng = np.random.default_rng(seed)
+    n_tot = unordered_pruning = unordered_inherited = 0
+    O = (0.0, 0.0)
+    while n_tot < n:
+        v = rng.uniform(-0.95, 0.95, 3)
+        t = rng.uniform(0.5, 3.0, 3)
+        ev = [(float(ti), float(vi * ti)) for vi, ti in zip(v, t)]
+        if any(causal(ev[i], ev[j]) != 0 for i, j in itertools.combinations(range(3), 2)):
+            continue
+        n_tot += 1
+        out = pruned_pair_anchors(tuple(v), tuple(ev))
+        unordered_inherited += out["inherited_first"] is None
+        unordered_pruning += out["pruning_first"] is None
+    return {"triples": n_tot, "unordered_inherited": unordered_inherited,
+            "unordered_pruning": unordered_pruning}
+
+
+def _swap_relations(E1, E2, T, MA, MD):
+    """Union of the two component orders ({A,B} anchored at E1: M_A vs T;
+    {C,D} anchored at E2: T vs M_D) with the causal order on the three
+    events; returns (closure, cyclic?, A-before-T?, T-before-D?)."""
+    evs = [MA, T, MD]
+    R = np.zeros((3, 3), dtype=bool)
+    for i, j in itertools.permutations(range(3), 2):
+        if causal(evs[i], evs[j]) == 1:
+            R[i, j] = True
+    fab = first([MA, T], E1)
+    fcd = first([T, MD], E2)
+    if fab == 0:
+        R[0, 1] = True
+    elif fab == 1:
+        R[1, 0] = True
+    if fcd == 0:
+        R[1, 2] = True
+    elif fcd == 1:
+        R[2, 1] = True
+    Rc = _closure(R)
+    return Rc, bool(Rc.diagonal().any()), fab == 0, fcd == 0
+
+
+def cross_component_cycle(E1=(0.0, 0.0), E2=(0.0, 1.0), T=(1.0, 0.5), MA=(2.5, 2.35), MD=(2.0, 2.8)) -> dict:
+    """Round-5 item T3 (referee C-N2).  Pairs created at E1 and E2; B (from
+    E1) and C (from E2) meet at the Bell-state measurement T; A is measured
+    at MA, D at MD.  In {A,B}: M_A is kappa-before T (0.8529 < 0.8660); in
+    {C,D}: T is kappa-before M_D (0.8660 < 0.8718); and M_D lies in M_A's
+    causal past.  The component orders and the causal order together are
+    cyclic: they do not compose into a partial order of all projections on
+    S = {A, B, C, D}.  Each component order is itself a strict partial order
+    (Proposition 5(a)), which is all P4 claims."""
+    Rc, cyc, a_first, t_first = _swap_relations(E1, E2, T, MA, MD)
+    return {"kappa_E1": {"MA": signed_interval(E1, MA), "T": signed_interval(E1, T)},
+            "kappa_E2": {"T": signed_interval(E2, T), "MD": signed_interval(E2, MD)},
+            "A_before_T_in_AB": a_first, "T_before_D_in_CD": t_first,
+            "MD_causally_before_MA": causal(MD, MA) == 1,
+            "MA_T_spacelike": causal(MA, T) == 0, "T_MD_spacelike": causal(T, MD) == 0,
+            "cyclic": cyc,
+            "component_orders_strict": (is_strict_partial_order(order_relation([MA, T], E1))
+                                        and is_strict_partial_order(order_relation([T, MD], E2))),
+            "velocities": {"A": MA[1] / MA[0], "B": T[1] / T[0],
+                           "C": (T[1] - E2[1]) / T[0], "D": (MD[1] - E2[1]) / MD[0]}}
+
+
+def cross_component_cycle_rate(n: int = 200000, seed: int = 25) -> dict:
+    """Random swapping geometries (referee C's sampler): how often the union
+    of the component orders with the causal order is cyclic, and how often at
+    least one outer measurement is P4-before the Bell-state measurement (the
+    delayed-choice branch, to which every cycle belongs)."""
+    rng = np.random.default_rng(seed)
+    n_cfg = n_cyc = n_delayed = n_cyc_not_delayed = 0
+    for _ in range(n):
+        L = rng.uniform(0.2, 3.0)
+        E1, E2 = (0.0, 0.0), (0.0, L)
+        tT = rng.uniform(0.2, 4.0)
+        xT = rng.uniform(-tT, L + tT)
+        vB, vC = xT / tT, (xT - L) / tT
+        if abs(vB) >= 0.98 or abs(vC) >= 0.98:
+            continue
+        vA, vD = rng.uniform(-0.97, 0.97, 2)
+        tA, tD = rng.uniform(0.1, 8.0, 2)
+        MA, MD, T = (tA, vA * tA), (tD, L + vD * tD), (tT, xT)
+        n_cfg += 1
+        _, cyc, a_first, t_first = _swap_relations(E1, E2, T, MA, MD)
+        delayed = a_first or not t_first and first([T, MD], E2) == 1
+        n_delayed += delayed
+        n_cyc += cyc
+        n_cyc_not_delayed += cyc and not delayed
+    return {"geometries": n_cfg, "cycles": n_cyc, "delayed_choice": n_delayed,
+            "cycles_outside_delayed_choice": n_cyc_not_delayed,
+            "rate": n_cyc / n_cfg}

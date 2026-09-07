@@ -393,3 +393,55 @@ if __name__ == "__main__":
     print("claim 5 SSM:", ssm_analysis(), "BSM witnesses:", bsm_witnesses())
     print("claim 7 graph vs state (a):", graph_vs_state("a", True, ys), graph_vs_state("a", False, ys))
     print("claim 9 Werner:", werner_swap(0.9, 0.8), {S: visibility_from_chsh(S) for S in (2.421, 2.37, 2.38)})
+
+
+# ------------------------------------------------- round-5 item T1 (A-N1)
+def _dephase(rho: np.ndarray, projectors) -> np.ndarray:
+    """Outcome-averaged (dephased) state after a projective measurement whose
+    record is outside S: sum_k P_k rho P_k."""
+    return sum(P @ rho @ P for P in projectors)
+
+
+def _weights(rho: np.ndarray, n: int, pairs) -> dict:
+    from mapping_spaces.entangled import r21_edge_weights as r21
+    return {pair: float(r21.edge_weight(rho, pair[0], pair[1], n)) for pair in pairs}
+
+
+def dephased_vs_conditional_weights() -> dict:
+    """Round-5 item T1 (referee A-N1).  P2's edge weights read off the
+    *dephased reduced* state of S (detector outside S) versus the
+    *outcome-conditioned* state, for three measurements:
+
+    * singlet, Z on A: w_AB = 0 both ways;
+    * GHZ_3, X on particle 1: w_23 = 1 both ways;
+    * swapping |psi->_AB |psi->_CD, Bell-basis measurement on B, C with
+      S = {A, B, C, D}: dephased w_AD = w_BC = 0, conditional w_AD = w_BC = 1
+      for every outcome.
+
+    Single-particle projections agree; a Bell-basis projection on two
+    partners does not.  The paper adopts the conditional-state rule, on which
+    the swapped edge jumps from 0 to 1 at the projection."""
+    out = {}
+    # singlet + Z on A
+    rho = qm.dm(qm.singlet())
+    projs = [qm.kron(qm.projector(np.array([0, 0, 1.0]), s), qm.I2) for s in (+1, -1)]
+    cond = [_weights(P @ rho @ P / np.real(np.trace(P @ rho)), 2, [(0, 1)])[(0, 1)] for P in projs]
+    out["singlet_Z"] = {"dephased": _weights(_dephase(rho, projs), 2, [(0, 1)])[(0, 1)],
+                        "conditional": cond}
+    # GHZ + X on particle 1
+    ghz = np.zeros(8, dtype=complex)
+    ghz[0] = ghz[7] = 1 / np.sqrt(2)
+    rho = qm.dm(ghz)
+    projs = [qm.kron(qm.projector(np.array([1.0, 0, 0]), s), qm.I2, qm.I2) for s in (+1, -1)]
+    cond = [_weights(P @ rho @ P / np.real(np.trace(P @ rho)), 3, [(1, 2)])[(1, 2)] for P in projs]
+    out["ghz_X"] = {"dephased": _weights(_dephase(rho, projs), 3, [(1, 2)])[(1, 2)],
+                    "conditional": cond}
+    # swapping: BSM on B, C
+    rho = qm.dm(initial_state())
+    projs = [bsm_projector(k) for k in range(4)]
+    pairs = [(0, 3), (1, 2)]                       # A-D, B-C
+    deph = _weights(_dephase(rho, projs), 4, pairs)
+    cond = [_weights(P @ rho @ P / np.real(np.trace(P @ rho)), 4, pairs) for P in projs]
+    out["swap_BSM"] = {"dephased": {"AD": deph[(0, 3)], "BC": deph[(1, 2)]},
+                       "conditional": [{"AD": c[(0, 3)], "BC": c[(1, 2)]} for c in cond]}
+    return out

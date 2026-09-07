@@ -167,3 +167,13 @@ class R08(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTMSNegativity(unittest.TestCase):
+    """Sec. 3.7.4: the unnormalized negativity (e^{2r} - 1)/2 of the
+    two-mode squeezed motional pair (round-5 H16)."""
+
+    def test_negativities(self):
+        for r_, expect in ((0.5, 0.86), (1.0, 3.19), (2.0, 26.8)):
+            self.assertAlmostEqual(r.tms_negativity(r_), (np.exp(2 * r_) - 1) / 2, places=6)
+            self.assertAlmostEqual(r.tms_negativity(r_), expect, delta=0.05)

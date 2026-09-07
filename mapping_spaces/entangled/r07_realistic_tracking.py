@@ -270,17 +270,30 @@ def _dissipator(L, rho):
     return L @ rho @ L.conj().T - 0.5 * (LdL @ rho + rho @ LdL)
 
 
-def reduced_spin_change(n_pos: int = 4, coupling: str = "position", seed: int = 3) -> dict:
+def reduced_spin_change(n_pos: int = 4, coupling: str = "position", seed: int = 3,
+                        position_state: str = "seeded") -> dict:
     """Toy check with a discretised position (n_pos levels): apply the
     measurement dissipator k[x,[x,.]] = -2k D[x] to rho_spin (x) rho_pos and
     trace out position.  ``coupling='position'``: L = 1 (x) x -> the reduced
     spin state does not change.  ``coupling='gradient'``: L = sigma_z^A (x) x
-    (sensor reads a spin-dependent position, i.e. a field gradient) -> it does."""
-    rng = np.random.default_rng(seed)
-    G = rng.standard_normal((n_pos, n_pos)) + 1j * rng.standard_normal((n_pos, n_pos))
-    rho_pos = G @ G.conj().T
-    rho_pos /= np.trace(rho_pos)
-    x_op = np.diag(np.linspace(-1.5, 1.5, n_pos)).astype(complex)
+    (sensor reads a spin-dependent position, i.e. a field gradient) -> it does.
+    ``position_state``: 'seeded' (a random mixed state from ``seed``,
+    <x^2> = 1.066, the 2.83 -> 2.53 instance) or 'uniform' (the uniform
+    mixture of the levels, <x^2> = 1.25 on the four-level grid, 2.83 -> 2.47).
+    After one Euler step eps the CHSH value at the standard settings is
+    |S| = sqrt2 (2 - 4 eps <x^2>) (round-5 item H3); returned as ``x2``."""
+    xs = np.linspace(-1.5, 1.5, n_pos)
+    if position_state == "seeded":
+        rng = np.random.default_rng(seed)
+        G = rng.standard_normal((n_pos, n_pos)) + 1j * rng.standard_normal((n_pos, n_pos))
+        rho_pos = G @ G.conj().T
+        rho_pos /= np.trace(rho_pos)
+    elif position_state == "uniform":
+        rho_pos = np.eye(n_pos, dtype=complex) / n_pos
+    else:
+        raise ValueError(position_state)
+    x_op = np.diag(xs).astype(complex)
+    x2 = float(np.real(np.trace(rho_pos @ x_op @ x_op)))
     rho_spin = qm.dm(qm.singlet())
     rho = np.kron(rho_spin, rho_pos)
     if coupling == "position":
@@ -294,8 +307,17 @@ def reduced_spin_change(n_pos: int = 4, coupling: str = "position", seed: int = 
     a, ap, b, bp = qm.chsh_optimal_settings()
     eps = 0.05                                      # one small Lindblad step
     rho_spin_new = rho_spin + eps * d_spin
-    return {"norm_change": float(np.linalg.norm(d_spin)),
-            "S_after_step": float(qm.chsh(rho_spin_new, a, ap, b, bp))}
+    return {"norm_change": float(np.linalg.norm(d_spin)), "x2": x2,
+            "S_after_step": float(qm.chsh(rho_spin_new, a, ap, b, bp)),
+            "S_closed_form": spin_step_closed_form(x2, eps)}
+
+
+def spin_step_closed_form(x2: float, eps: float = 0.05) -> float:
+    """|S| at the standard settings after one Euler step eps (units 1/Gamma_m)
+    of the gradient dissipator on the singlet: the x-x and y-y correlators
+    decay by 1 - 4 eps <x^2> while the z-z one is untouched, so
+    |S| = sqrt2 (1 + (1 - 4 eps <x^2>)) = sqrt2 (2 - 4 eps <x^2>)."""
+    return float(np.sqrt(2) * (2 - 4 * eps * x2))
 
 
 def spin_dephasing_rate_ratio(n_pos: int = 81, width: float = 1.0) -> float:

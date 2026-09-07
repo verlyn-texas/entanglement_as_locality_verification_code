@@ -16,7 +16,7 @@ a research programme:
   with frame time = proper time; a w<1 partner moves at (1-w) x the
   relativistic relative velocity; the collinear limit recovers the scalar
   rapidities of Sec. 3.7.1.  Maps between unrelated particles' frames carry
-  Wigner rotations (up to ~24 deg here) — a fixed local unitary per particle
+  Wigner rotations (up to ~27 deg here) — a fixed local unitary per particle
   on sharp tracks, changing no cut negativity and no statistic.
 * Light-cone rule (Eq. 10): with the Euclidean norm the kappa-clocks, the
   cone sign and the ordering are invariant under non-collinear boosts, and
@@ -264,3 +264,26 @@ def negativity(rho, dA, dB):
     r = rho.reshape(dA, dB, dA, dB).transpose(0, 3, 2, 1).reshape(dA * dB, dA * dB)
     ev = np.linalg.eigvalsh(r)
     return float(-ev[ev < 0].sum())
+
+
+# ------------------------------------------------- round-5 item H16 (B-N4)
+def wigner_angle_two_boosts(speed: float = 0.85) -> float:
+    """Wigner rotation angle (degrees) of two perpendicular boosts of the
+    given speed: rotation part of boost(v x) boost(v y).  Closed form
+    tan(Omega) = sinh^2(a) / (2 cosh(a)) with a = artanh(speed): 34.44 deg at
+    0.85c."""
+    L = boost(np.array([speed, 0.0, 0.0])) @ boost(np.array([0.0, speed, 0.0]))
+    return float(rotation_angle_deg(L))
+
+
+def wigner_angle_two_boosts_closed_form(speed: float = 0.85) -> float:
+    a = np.arctanh(speed)
+    return float(np.degrees(np.arctan(np.sinh(a) ** 2 / (2 * np.cosh(a)))))
+
+
+def wigner_scan_max(velocities, weights, heights=("lab", 0, 1, 2, 3)) -> float:
+    """Largest Wigner rotation angle (degrees) over all maps between the
+    frames of unrelated particles in the four-particle scan of Appendix C."""
+    n = len(velocities)
+    return max(rotation_angle_deg(frame_map(k, l, h, velocities, weights))
+               for k in range(n) for l in range(n) if k != l for h in heights)

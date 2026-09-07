@@ -151,3 +151,24 @@ class R12(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestWhenRule(unittest.TestCase):
+    """Round-5 T1: the charts are read off the outcome-conditioned state;
+    single-particle projections agree with the dephased reading, a Bell-basis
+    projection on two partners does not (the swapped edge jumps 0 -> 1)."""
+
+    def test_dephased_vs_conditional(self):
+        out = r.dephased_vs_conditional_weights()
+        self.assertAlmostEqual(out["singlet_Z"]["dephased"], 0.0, places=9)
+        for c in out["singlet_Z"]["conditional"]:
+            self.assertAlmostEqual(c, 0.0, places=9)
+        self.assertAlmostEqual(out["ghz_X"]["dephased"], 1.0, places=9)
+        for c in out["ghz_X"]["conditional"]:
+            self.assertAlmostEqual(c, 1.0, places=9)
+        sw = out["swap_BSM"]
+        self.assertAlmostEqual(sw["dephased"]["AD"], 0.0, places=9)
+        self.assertAlmostEqual(sw["dephased"]["BC"], 0.0, places=9)
+        for c in sw["conditional"]:
+            self.assertAlmostEqual(c["AD"], 1.0, places=9)
+            self.assertAlmostEqual(c["BC"], 1.0, places=9)

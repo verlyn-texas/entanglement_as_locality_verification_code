@@ -340,3 +340,33 @@ if __name__ == "__main__":
           {u: pair_clocks_under_boost(wl, u, rule=lab_sync_clock) for u in (-0.5, 0.0, 0.5)})
     print("claim 6 GHZ:", {u: ghz_order_under_boost(u) for u in (0.0, -0.5, 0.9)}, ghz_light_cone_clocks())
     print("claim 7 L-D2:", {d: ld2_clocks(d) for d in (1.0, 10.0, 100.0)}, ld2_cone_boundary_metres())
+
+
+# ------------------------------------------------- round-5 item H4 (B-N3)
+def chart_jump_at_reanchoring() -> dict:
+    """The covariant chart applies the boost Lambda(psi(z)) from the
+    laboratory origin, so when the transfer's cone reaches a particle its
+    chart re-pins and positions jump.  In the working pair the cone of the
+    transfer T = (2, 0.8) reaches A's worldline at t = 3.5; at that event A's
+    chart moves its former partner B from 0 to 2.14 and its new partner D
+    from 4.13 to 1.85 (= gamma(0.5) * 1.6).  Returned: positions before and
+    after in A's chart, at the crossing event."""
+    from mapping_spaces.entangled import lorentz_frames as LF
+    wl = swap_worldlines()
+    T = transfer_event()
+    tA = light_cone_crossing(wl["A"], T)
+
+    def graph(links):
+        g = G.LocalityGraph()
+        for n in "ABCD":
+            g.add(G.Particle(n, wl[n].z, wl[n].v, float(wl[n].x(0.0))))
+        for a, b in links:
+            g.link(a, b, 1.0)
+        return g
+    before, after = graph([("A", "B"), ("C", "D")]), graph([("A", "D")])
+    out = {"t_crossing": float(tA)}
+    for who in ("B", "D"):
+        xb = LF.to_frame(before, "A", wl[who].z, tA, wl[who].x(tA))[1]
+        xa = LF.to_frame(after, "A", wl[who].z, tA, wl[who].x(tA))[1]
+        out[who] = {"before": float(xb), "after": float(xa)}
+    return out

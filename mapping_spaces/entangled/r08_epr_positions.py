@@ -323,3 +323,14 @@ if __name__ == "__main__":
               f"{tab['var_p_plus'][i] / tab['var_p_plus'][0]:.6f}  "
               f"{tab['var_back_evolved'][i] / tab['var_back_evolved'][0]:.6f}  "
               f"{tab['nu_minus'][i] / (HBAR / 2):.6f}  {tab['duan_sum'][i]:.4f}  {tab['reid_ratio'][i]:.4f}")
+
+
+# ------------------------------------------------- round-5 item H16 (B-N4)
+def tms_negativity(r: float, hbar: float = 1.0) -> float:
+    """Negativity of the two-mode squeezed vacuum across the mode cut, from
+    the smallest symplectic eigenvalue nu of the partial transpose:
+    N = (hbar/(2 nu) - 1)/2 = (e^{2r} - 1)/2 (0.86, 3.19, 26.8 at r = 0.5,
+    1, 2) — the unnormalized weight a spin-separable motional pair would get
+    under a spin (x) momentum reading of P2 (Sec. 3.7.4)."""
+    nu = ppt_min_symplectic(tmsv_cov(r, hbar=hbar))
+    return float(max(0.0, (hbar / (2 * nu) - 1) / 2))

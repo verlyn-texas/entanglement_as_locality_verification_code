@@ -126,3 +126,38 @@ class TestWorkedNumbers(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRound5Anchoring(unittest.TestCase):
+    """Round-5 T2 (inherited anchor for a pruned component) and T3 (the
+    component orders do not compose)."""
+
+    def test_pruned_pair_inherits_the_parent_anchor(self):
+        out = r25.pruned_pair_anchors()
+        self.assertTrue(out["on_worldlines"])
+        self.assertEqual(out["first"], 0)
+        self.assertEqual(out["remnant"], [1, 2])
+        np.testing.assert_allclose(out["kappa_O"], [1.0, 2.322, 2.156], atol=1e-3)
+        self.assertEqual(out["inherited_first"], 2)            # 3 before 2 by kappa from O
+        np.testing.assert_allclose(out["kappa_pruning"], [0.624, 1.116], atol=1e-3)
+        self.assertEqual(out["pruning_first"], 1)              # the withdrawn reading: 2 before 3
+        rnd = r25.random_spacelike_triples_pruning_anchor(1000)
+        self.assertEqual(rnd["unordered_inherited"], 0)        # total order by proper time from O
+        self.assertGreater(rnd["unordered_pruning"], rnd["triples"] // 2)
+
+    def test_component_orders_do_not_compose(self):
+        out = r25.cross_component_cycle()
+        self.assertTrue(out["MA_T_spacelike"] and out["T_MD_spacelike"])
+        self.assertAlmostEqual(out["kappa_E1"]["MA"], 0.8529, places=4)
+        self.assertAlmostEqual(out["kappa_E1"]["T"], 0.8660, places=4)
+        self.assertAlmostEqual(out["kappa_E2"]["MD"], 0.8718, places=4)
+        self.assertTrue(out["A_before_T_in_AB"])
+        self.assertTrue(out["T_before_D_in_CD"])
+        self.assertTrue(out["MD_causally_before_MA"])
+        self.assertTrue(out["cyclic"])
+        self.assertTrue(out["component_orders_strict"])
+        self.assertTrue(all(abs(v) < 1 for v in out["velocities"].values()))
+        rate = r25.cross_component_cycle_rate(40000)
+        self.assertGreater(rate["cycles"], 0)
+        self.assertLess(rate["rate"], 0.01)
+        self.assertEqual(rate["cycles_outside_delayed_choice"], 0)
