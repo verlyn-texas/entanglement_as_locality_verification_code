@@ -108,6 +108,12 @@ class TestCovariantGroupValued(unittest.TestCase):
                  for k in (0, 1) for l in (2, 3) for h in self.heights]
         self.assertAlmostEqual(max(cross), 18.0, delta=0.1)           # different components
 
+    def test_local_unitaries_change_no_cut_negativity(self):
+        # Appendix C: a fixed rotation per particle changes no cut negativity (round-6 J9)
+        out = r24.local_unitary_invariance()
+        self.assertEqual(out["cuts"], 7)
+        self.assertLess(out["max_change"], 1e-12)
+
     def test_wigner_angle_two_perpendicular_boosts(self):
         # Appendix C: two perpendicular 0.85c boosts rotate by 34 deg (34.44)
         self.assertAlmostEqual(r24.wigner_angle_two_boosts(0.85), 34.44, delta=0.01)

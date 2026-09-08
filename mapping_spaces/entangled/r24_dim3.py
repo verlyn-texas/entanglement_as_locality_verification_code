@@ -35,6 +35,7 @@ the rewritten Sec. 3.7.4 numerics is backed by tests/test_entangled_r24.py.
 """
 from __future__ import annotations
 
+import itertools
 import numpy as np
 
 ETA = np.diag([1.0, -1.0, -1.0, -1.0])
@@ -287,3 +288,38 @@ def wigner_scan_max(velocities, weights, heights=("lab", 0, 1, 2, 3)) -> float:
     n = len(velocities)
     return max(rotation_angle_deg(frame_map(k, l, h, velocities, weights))
                for k in range(n) for l in range(n) if k != l for h in heights)
+
+
+# ------------------------------------------------- round-6 item J9 (B-P3)
+def _random_su2(rng) -> np.ndarray:
+    """Haar-random SU(2): QR of a complex Gaussian matrix, phase-fixed."""
+    z = rng.normal(size=(2, 2)) + 1j * rng.normal(size=(2, 2))
+    q, r = np.linalg.qr(z)
+    q = q @ np.diag(np.diag(r) / np.abs(np.diag(r)))
+    return q / np.sqrt(np.linalg.det(q))
+
+
+def local_unitary_invariance(n_particles: int = 4, rank: int = 3, trials: int = 20,
+                             seed: int = 24) -> dict:
+    """Appendix C: a fixed rotation per particle (a Wigner rotation on a sharp
+    track) acts as a local unitary and changes no cut negativity, hence no
+    P2 edge weight.  Random rank-`rank` mixed states of `n_particles` spins,
+    a Haar-random SU(2) on every particle, every bipartite cut compared."""
+    from mapping_spaces.entangled import r21_edge_weights as r21
+    rng = np.random.default_rng(seed)
+    d = 2 ** n_particles
+    dims = [2] * n_particles
+    cuts = [s for k in range(1, n_particles) for s in itertools.combinations(range(n_particles), k)
+            if 0 in s]
+    worst = 0.0
+    for _ in range(trials):
+        A = rng.normal(size=(d, rank)) + 1j * rng.normal(size=(d, rank))
+        rho = A @ A.conj().T
+        rho /= np.trace(rho).real
+        U = _random_su2(rng)
+        for _k in range(n_particles - 1):
+            U = np.kron(U, _random_su2(rng))
+        rho_u = U @ rho @ U.conj().T
+        for s in cuts:
+            worst = max(worst, abs(r21.negativity_dims(rho, s, dims) - r21.negativity_dims(rho_u, s, dims)))
+    return {"trials": trials, "cuts": len(cuts), "max_change": float(worst)}

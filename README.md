@@ -5,9 +5,9 @@ data availability" statement. Every "verified numerically" in the paper is
 backed by a test here, and every figure of the paper, together with the
 numerical tables the paper moved into this repository, is generated from the
 same modules the tests check. Licence: MIT (see `LICENSE`).
-Release `v1.2.0` is the version reviewed with the paper (`v1.1.0` was the
-previous round's; the difference is the tests listed under "Round-5
-additions" below).
+Release `v1.2.1` is the version reviewed with the paper (`v1.2.0` and
+`v1.1.0` were the previous rounds'; the differences are listed under
+"Round-6 additions" and "Round-5 additions" below).
 
 ## Running the tests
 
@@ -58,6 +58,22 @@ tables and figures the paper moved into this repository (the tracking table
 and figure of Appendix A: `fig_tracking`; the free-flight table of Appendix B
 is printed by `r08_epr_positions`; `fig_contact_polytope` and `fig_cps` are
 the histogram of the contact-rule enumeration and the splitter plot).
+
+## Round-6 additions (v1.2.1)
+
+- `figures.py` again imports only modules of this release (v1.2.0's copy
+  imported an unreleased module at the top of the file and could not run);
+  the docstring says "the paper", and the script draws the paper's three
+  figures and the material moved into this repository, nothing else.
+- `r24_dim3.local_unitary_invariance` — a Haar-random SU(2) on every particle
+  changes no cut negativity of a random four-spin mixed state (Appendix C's
+  local-unitary sentence, now asserted).
+- `r25_ordering_rule.iterated_swapping_unordered` — in the working pair a
+  measurement outside the transfer's cone (κ = −0.980) and a second Bell-state
+  measurement inside it (κ = 1.249) are spacelike and P4-unordered, so under
+  iterated swapping successor-component membership can be undefined.
+- `test_entangled_r25`: the pruning-anchor count is asserted to be *all* of
+  the mutually spacelike triples (was "more than half").
 
 ## Round-5 additions (v1.2.0)
 

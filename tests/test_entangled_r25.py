@@ -143,7 +143,7 @@ class TestRound5Anchoring(unittest.TestCase):
         self.assertEqual(out["pruning_first"], 1)              # the withdrawn reading: 2 before 3
         rnd = r25.random_spacelike_triples_pruning_anchor(1000)
         self.assertEqual(rnd["unordered_inherited"], 0)        # total order by proper time from O
-        self.assertGreater(rnd["unordered_pruning"], rnd["triples"] // 2)
+        self.assertEqual(rnd["unordered_pruning"], rnd["triples"])   # all of them (round-6 J9)
 
     def test_component_orders_do_not_compose(self):
         out = r25.cross_component_cycle()
@@ -161,3 +161,17 @@ class TestRound5Anchoring(unittest.TestCase):
         self.assertGreater(rate["cycles"], 0)
         self.assertLess(rate["rate"], 0.01)
         self.assertEqual(rate["cycles_outside_delayed_choice"], 0)
+
+
+class TestRound6Precisions(unittest.TestCase):
+    """Round-6 item J8 (C-P2): iterated swapping with a transfer-anchored
+    parent can leave successor-component membership P4-undefined."""
+
+    def test_iterated_swapping_membership_unordered(self):
+        out = r25.iterated_swapping_unordered()
+        self.assertAlmostEqual(out["kappa_MA"], -0.980, places=3)
+        self.assertAlmostEqual(out["kappa_T2"], 1.249, places=3)
+        self.assertFalse(out["MA_in_cone"])
+        self.assertTrue(out["T2_in_cone"])
+        self.assertTrue(out["spacelike"])
+        self.assertIsNone(out["first"])

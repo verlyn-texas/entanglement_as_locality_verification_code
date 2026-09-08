@@ -538,3 +538,17 @@ def cross_component_cycle_rate(n: int = 200000, seed: int = 25) -> dict:
     return {"geometries": n_cfg, "cycles": n_cyc, "delayed_choice": n_delayed,
             "cycles_outside_delayed_choice": n_cyc_not_delayed,
             "rate": n_cyc / n_cfg}
+
+
+def iterated_swapping_unordered(T=(2.0, 0.8), MA=(3.0, -0.6), T2=(6.0, 4.6)) -> dict:
+    """Round-6 item J8 (referee C-P2).  In the working pair of Sec. 3.7.2
+    (transfer-anchored component {A, D}, defining event T), A measured at MA
+    lies outside T's cone (kappa = -0.980) while a second Bell-state
+    measurement on D at T2 lies inside it (kappa = 1.249); the two events are
+    spacelike, so P4 leaves them unordered — whether A was already projected
+    when the second swap happened, i.e. whether the component that T2 would
+    create ever contained A, is undefined in the ordering narrative.  Nothing
+    statistical or chart-level depends on it."""
+    return {"kappa_MA": signed_interval(T, MA), "kappa_T2": signed_interval(T, T2),
+            "MA_in_cone": in_future_cone(MA, T), "T2_in_cone": in_future_cone(T2, T),
+            "spacelike": causal(MA, T2) == 0, "first": first([MA, T2], T)}
