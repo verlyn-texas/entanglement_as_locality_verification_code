@@ -5,9 +5,16 @@ data availability" statement. Every "verified numerically" in the paper is
 backed by a test here, and every figure of the paper, together with the
 numerical tables the paper moved into this repository, is generated from the
 same modules the tests check. Licence: MIT (see `LICENSE`).
-Release `v1.2.1` is the version reviewed with the paper (`v1.2.0` and
-`v1.1.0` were the previous rounds'; the differences are listed under
-"Round-6 additions" and "Round-5 additions" below).
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22820042.svg)](https://doi.org/10.5281/zenodo.22820042)
+
+Archived on Zenodo: [doi:10.5281/zenodo.22820042](https://doi.org/10.5281/zenodo.22820042)
+(concept DOI, always resolving to the latest version).
+
+Release `v1.2.2` is the version described in the paper; its code is identical to
+`v1.2.1`, adding only the `.zenodo.json` archival metadata (`v1.2.0` and `v1.1.0`
+were the previous rounds'; the differences are listed under "Round-6 additions"
+and "Round-5 additions" below).
 
 ## Running the tests
 
