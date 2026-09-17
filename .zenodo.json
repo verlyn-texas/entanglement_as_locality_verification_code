@@ -1,0 +1,21 @@
+{
+  "upload_type": "software",
+  "title": "Verification code for \"A label-coordinate bookkeeping for entangled pairs: what co-location can and cannot explain\"",
+  "description": "<p>Verification code for the paper &ldquo;A label-coordinate bookkeeping for entangled pairs: what co-location can and cannot explain&rdquo;.</p><p>A dependency-light Python/NumPy package implementing the label-coordinate frame maps, the locality-graph and edge-weight rules, the Lorentz-covariant variant and its invariant-interval ordering rule, the contact-rule enumeration, and the numerical checks behind the paper's propositions. The unit-test suite (198 tests) is organized so that each numbered claim in the paper has a corresponding test, as tabulated in the paper's claim-to-test table.</p><p>The code in this release is identical to release v1.2.1; v1.2.2 adds archival metadata only.</p>",
+  "creators": [
+    {
+      "name": "Fischer, Verlyn",
+      "orcid": "0009-0001-3959-8877"
+    }
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "version": "v1.2.2",
+  "keywords": [
+    "entanglement",
+    "Bell nonlocality",
+    "interpretations of quantum mechanics",
+    "reference frames",
+    "relativistic quantum information"
+  ]
+}
